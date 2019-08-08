@@ -56,7 +56,7 @@ database.ref().on("child_added", function(childSnapshot) {
   var trainTimePretty = moment(trainTime).format("HH:mm");
 
   // To calculate the next arrival
-  var trainArrival = moment().diff(moment(trainTime), "minutes");\
+  var trainArrival = moment().diff(moment(trainTime), "minutes");
 
   // Calculate the Minutes Away
   var trainMinutesAway = trainArrival * trainFreq;
