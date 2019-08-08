@@ -20,8 +20,10 @@ $("#add-train-btn").on("click", function(event) {
   // Grabs user input
   var trainName = $("#train-name-input").val().trim();
   var trainDest = $("#destination-input").val().trim();
-  var trainTime = moment($("first-train-time-input").val().trim(), "HH:mm");
+  var trainTime = moment($("#first-train-time-input").val().trim(), "hh:mm");
   var trainFreq = $("#frequency-input").val().trim();
+
+  console.log(trainTime);
 
   // Creates local "temporary" object for holding train data
   var newTrain = {
@@ -33,6 +35,8 @@ $("#add-train-btn").on("click", function(event) {
 
   // Uploads train data to the database
   database.ref().push(newTrain);
+
+  
 
   alert("Train successfully added");
 
@@ -53,10 +57,10 @@ database.ref().on("child_added", function(childSnapshot) {
   var trainFreq = childSnapshot.val().frequency;
 
   // Prettify the train time
-  var trainTimePretty = moment(trainTime).format("HH:mm");
+  var trainTimePretty = moment(trainTime).format("hh:mm");
 
   // To calculate the next arrival
-  var trainArrival = moment().diff(moment(trainTime), "minutes");
+  var trainArrival = moment().diff(moment(trainTime), "hh:mm");
 
   // Calculate the Minutes Away
   var trainMinutesAway = trainArrival * trainFreq;
@@ -74,11 +78,3 @@ database.ref().on("child_added", function(childSnapshot) {
   // Append the new row to the table
   $("#train-table > tbody").append(newRow);
 });
-
-// Example Time Math
-// -----------------------------------------------------------------------------
-// Assume Employee start date of January 1, 2015
-// Assume current date is March 1, 2016
-
-// We know that this is 15 months.
-// Now we will create code in moment.js to confirm that any attempt we use meets this test case
