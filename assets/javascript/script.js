@@ -13,6 +13,8 @@ var firebaseConfig = {
 
     var database = firebase.database();
 
+    var currentTime = moment().format('LT');
+
 // 2. Button for adding Trains
 $("#add-train-btn").on("click", function(event) {
   event.preventDefault();
@@ -20,23 +22,18 @@ $("#add-train-btn").on("click", function(event) {
   // Grabs user input
   var trainName = $("#train-name-input").val().trim();
   var trainDest = $("#destination-input").val().trim();
-  var trainTime = moment($("#first-train-time-input").val().trim(), "hh:mm");
+  var trainTime = $("#first-train-time-input").val().trim();
   var trainFreq = $("#frequency-input").val().trim();
 
   console.log(trainTime);
 
-  // Creates local "temporary" object for holding train data
-  var newTrain = {
-    name: trainName,
-    destination: trainDest,
-    time: trainTime,
-    frequency: trainFreq
-  };
-
   // Uploads train data to the database
-  database.ref().push(newTrain);
-
-  
+  database.ref().push({
+    trainName: trainName,
+    trainDest: trainDest,
+    trainTime: trainTime,
+    trainFreq: trainFreq
+  });
 
   alert("Train successfully added");
 
@@ -48,33 +45,29 @@ $("#add-train-btn").on("click", function(event) {
 });
 
 // 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
-database.ref().on("child_added", function(childSnapshot) {
+database.ref().on("child_added", function(snapshot) {
+  if(snapshot.val() != null){
 
-  // Store everything into a variable.
-  var trainName = childSnapshot.val().name;
-  var trainDest = childSnapshot.val().destination;
-  var trainTime = childSnapshot.val().time;
-  var trainFreq = childSnapshot.val().frequency;
+  var currentTrain = snapshot.val();
+  var trainTimeMoment = moment(currentTrain.trainTime, "HH:mm");
+  var trainFreq = Number(currentTrain.trainFreq);
+  var trainArrival = trainTimeMoment.clone();
 
-  // Prettify the train time
-  var trainTimePretty = moment(trainTime).format("hh:mm");
+  for(var i = 1; trainArrival.isBefore(moment()); i++){
+    trainArrival.add(trainFreq, "m")
+  };
 
-  // To calculate the next arrival
-  var trainArrival = moment().diff(moment(trainTime), "hh:mm");
-
-  // Calculate the Minutes Away
-  var trainMinutesAway = trainArrival * trainFreq;
+  var timeAway = trainArrival.fromNow();
+  
 
   // Create the new row
-  var newRow = $("<tr>").append(
-    $("<td>").text(trainName),
-    $("<td>").text(trainDest),
-    $("<td>").text(trainTimePretty),
-    $("<td>").text(trainArrival),
-    $("<td>").text(trainArrival),
-    $("<td>").text(trainMinutesAway)
-  );
+  var row = $("<tr>");
+    row.append("<td>" + snapshot.val().trainName + "</td>");
+    row.append("<td>" + snapshot.val().trainDest + "</td>");
+    row.append("<td>" + trainFreq + "</td>");
+    row.append("<td>" + trainArrival.format("h:mm a") + "</td>")
+    row.append("<td>" + timeAway + "</td>");
+    $("tbody").append(row);
+  }
 
-  // Append the new row to the table
-  $("#train-table > tbody").append(newRow);
 });
